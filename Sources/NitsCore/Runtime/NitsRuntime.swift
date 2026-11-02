@@ -13,6 +13,7 @@ public struct DisplayState: Codable, Sendable {
     public var gamma: GammaAdjustment
     public var hdrSoftware: Bool
     public var extraBrightness: Bool
+    public var overlayDimming: Bool
     public var forcedVolume: Bool
     public var maxBrightness: UInt16?
     public var disconnected: Bool
@@ -206,6 +207,7 @@ public final class NitsRuntime: @unchecked Sendable {
             gamma: gamma.adjustment(for: display.id),
             hdrSoftware: settings.hdrSoftwareDimming ?? false,
             extraBrightness: settings.extraBrightness ?? false,
+            overlayDimming: settings.overlayDimming ?? false,
             forcedVolume: settings.forcedVolume ?? false,
             maxBrightness: brightness.maximum(for: display.id),
             disconnected: disconnect.disconnectedDisplays().contains { $0.uuid == display.uuid }
@@ -409,6 +411,30 @@ public final class NitsRuntime: @unchecked Sendable {
     public func setExtraBrightness(_ on: Bool, for display: DisplaySnapshot) {
         brightness.setExtraBrightness(on, for: display.id)
         updateSettings(display.uuid) { $0.extraBrightness = on }
+    }
+
+    /// Dim with a black overlay window instead of the gamma table, which allows true black.
+    /// The overlay is drawn by the app; without one running this only saves the setting.
+    public func setOverlayDimming(_ on: Bool, for display: DisplaySnapshot) {
+        gamma.setOverlayMode(on, for: display.id)
+        updateSettings(display.uuid) { $0.overlayDimming = on }
+        if let percent = brightness.lastPercent(for: display.id) {
+            Task { _ = await brightness.setBrightness(percent, for: display, wait: false) }
+        }
+    }
+
+    /// Brings live overlay modes in line with the saved settings (after a CLI change).
+    public func syncOverlayModes() {
+        let saved = config.snapshot().displaySettings
+        for display in DisplayCatalog.snapshots() {
+            let wanted = saved[display.uuid]?.overlayDimming ?? false
+            if gamma.isOverlayMode(for: display.id) != wanted {
+                gamma.setOverlayMode(wanted, for: display.id)
+                if let percent = brightness.lastPercent(for: display.id) {
+                    Task { _ = await brightness.setBrightness(percent, for: display, wait: false) }
+                }
+            }
+        }
     }
 
     public func setForcedVolume(_ on: Bool, for display: DisplaySnapshot) {
@@ -707,6 +733,9 @@ public final class NitsRuntime: @unchecked Sendable {
         }
         if let factor = settings.softwareFactor, settings.brightness == nil {
             gamma.setSoftwareFactor(factor, for: display.id)
+        }
+        if settings.overlayDimming == true {
+            gamma.setOverlayMode(true, for: display.id)
         }
         if settings.hdrSoftwareDimming == true {
             brightness.setHDRSoftwareDimming(true, for: display.id)

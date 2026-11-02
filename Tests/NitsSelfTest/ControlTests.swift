@@ -9,7 +9,14 @@ func runControlTests() {
         harness.approx(BrightnessController.gammaFactor(for: 7.5), 0.5, 0.001, "half of the blend range")
         harness.equal(BrightnessController.gammaFactor(for: 66), 1, "above the blend range gamma is neutral")
         harness.approx(BrightnessController.gammaFactor(for: 120), 1.2, 0.001, "extra brightness lifts gamma")
-        harness.approx(BrightnessController.gammaFactor(for: 0), 0.01, 0.001, "zero never produces a black table")
+        harness.approx(BrightnessController.gammaFactor(for: 0), 0, 0.001, "zero requests full dimming")
+        harness.approx(GammaEngine.minimumFactor(overlay: false), 0.01, 0.001, "table dimming never reaches black")
+        harness.approx(GammaEngine.minimumFactor(overlay: true), 0, 0.001, "overlay dimming reaches true black")
+        harness.approx(GammaEngine.overlayOpacity(forFactor: 0), 1, 0.001, "factor 0 is a fully black overlay")
+        harness.approx(GammaEngine.overlayOpacity(forFactor: 0.4), 0.6, 0.001, "overlay opacity is the dim amount")
+        harness.approx(GammaEngine.overlayOpacity(forFactor: 1.3), 0, 0.001, "lifted output has no overlay")
+        harness.approx(GammaEngine.tableFactor(forFactor: 0.3, overlay: true), 1, 0.001, "overlay leaves the table neutral")
+        harness.approx(GammaEngine.tableFactor(forFactor: 1.3, overlay: true), 1.3, 0.001, "overlay keeps extra brightness lift")
     }
 
     harness.suite("Volume and input") {

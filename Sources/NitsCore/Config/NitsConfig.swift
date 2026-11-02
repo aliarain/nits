@@ -8,6 +8,8 @@ public struct DisplaySettings: Codable, Hashable, Sendable {
     public var contrast: Double?
     public var hdrSoftwareDimming: Bool?
     public var extraBrightness: Bool?
+    /// Dim with a black overlay window (reaches true black) instead of the gamma table.
+    public var overlayDimming: Bool?
     public var forcedVolume: Bool?
     public var lastInput: UInt16?
     public var customName: String?

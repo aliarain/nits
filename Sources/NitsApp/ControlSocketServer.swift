@@ -118,6 +118,15 @@ final class ControlSocketServer: @unchecked Sendable {
             let target = action == "toggle" ? !model.keepAwake : action != "off"
             model.setKeepAwake(target)
             return "keep awake: \(model.keepAwake ? "on" : "off")"
+        case "brightness":
+            // "<display uuid> <percent>": lets the CLI hand overlay-dimmed displays to the
+            // app, because only the app owns the overlay windows.
+            let fields = argument.split(separator: " ").map(String.init)
+            guard fields.count == 2, let value = Double(fields[1]),
+                  model.rows.contains(where: { $0.id == fields[0] })
+            else { return "usage: brightness <display uuid> <percent>" }
+            model.setBrightness(min(150, max(0, value)), rowID: fields[0])
+            return "ok"
         case "reload":
             model.reloadFromDisk()
             return "reloaded"

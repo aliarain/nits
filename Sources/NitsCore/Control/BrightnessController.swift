@@ -84,7 +84,7 @@ public final class BrightnessController: @unchecked Sendable {
             states[displayID] = state
         }
         if on, let percent = lastPercent(for: displayID) {
-            gamma.setSoftwareFactor(max(0.01, percent / 100), for: displayID)
+            gamma.setSoftwareFactor(max(0, percent / 100), for: displayID)
         } else if let percent = lastPercent(for: displayID), percent >= Self.gammaBlendThreshold {
             gamma.setSoftwareFactor(1, for: displayID)
         }
@@ -122,7 +122,7 @@ public final class BrightnessController: @unchecked Sendable {
         }
 
         if state.hdrSoftware || state.backend == .software {
-            gamma.setSoftwareFactor(max(0.01, clamped / 100), for: display.id)
+            gamma.setSoftwareFactor(max(0, clamped / 100), for: display.id)
             markBackend(.software, displayID: display.id)
             return true
         }
@@ -130,7 +130,7 @@ public final class BrightnessController: @unchecked Sendable {
         // The monitor is still being probed: show the target immediately in gamma so the
         // slider never feels dead while I2C catches up.
         if state.backend == .unknown {
-            gamma.setSoftwareFactor(max(0.01, clamped / 100), for: display.id)
+            gamma.setSoftwareFactor(max(0, clamped / 100), for: display.id)
         } else {
             gamma.setSoftwareFactor(Self.gammaFactor(for: clamped), for: display.id)
         }
@@ -148,7 +148,9 @@ public final class BrightnessController: @unchecked Sendable {
         if percent > 100 {
             gamma.setSoftwareFactor(min(1.5, max(1, percent / 100)), for: display.id)
         } else {
-            gamma.setSoftwareFactor(1, for: display.id)
+            // Native panels bottom out above black; the overlay (when enabled) closes the gap.
+            let blackout = gamma.isOverlayMode(for: display.id) && percent <= 0
+            gamma.setSoftwareFactor(blackout ? 0 : 1, for: display.id)
         }
         if ok {
             markBackend(.native, displayID: display.id)
@@ -181,7 +183,7 @@ public final class BrightnessController: @unchecked Sendable {
             gamma.setSoftwareFactor(Self.gammaFactor(for: percent), for: display.id)
         } else {
             let latched = lock.withLock { states[display.id]?.backend == .software }
-            gamma.setSoftwareFactor(latched ? max(0.01, percent / 100) : Self.gammaFactor(for: percent), for: display.id)
+            gamma.setSoftwareFactor(latched ? max(0, percent / 100) : Self.gammaFactor(for: percent), for: display.id)
         }
         return ok
     }
@@ -271,7 +273,7 @@ public final class BrightnessController: @unchecked Sendable {
 
     public static func gammaFactor(for percent: Double) -> Double {
         if percent > 100 { return min(1.5, percent / 100) }
-        if percent < gammaBlendThreshold { return max(0.01, percent / gammaBlendThreshold) }
+        if percent < gammaBlendThreshold { return max(0, percent / gammaBlendThreshold) }
         return 1
     }
 }

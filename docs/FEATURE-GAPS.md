@@ -24,8 +24,8 @@ doctor report; keep awake; launch at login; Dark Mode; sleep/wake mode restore.
 
 | BetterDisplay feature | Nits | What is missing / what it needs |
 | --- | --- | --- |
-| Dimming to black | Partial | Gamma floor is 0.01 and DDC floor is 15%, so 0% is near-black, not true black. Needs a real blackout overlay or gamma floor 0 plus a safe recovery path. |
-| Software dimming through overlays | Missing | We only use color tables. Needs a transparent overlay window (or Metal layer) for displays/HDR where the table is unsuitable. |
+| Dimming to black | Done (opt-in) | Per-display "Overlay dimming" draws a click-through black window, so 0% is true black. Without it the gamma floor stays at 0.01 for safety. |
+| Software dimming through overlays | Done (opt-in) | Black overlay window at screen-saver level, composed with the gamma table; removed on quit. Not a Metal layer, so no HDR/XDR headroom work. |
 | Color-table XDR/HDR brightness upscaling | Missing | We lift gamma for “extra brightness”, but do not drive the panel’s XDR/HDR color table or EDR headroom. Needs CoreDisplay/CoreBrightness color-table work. |
 | Metal XDR/HDR brightness upscaling | Missing | Needs a Metal compositor overlay that adds luminance above SDR, per display, with HDR video handling. |
 | Direct XDR brightness upscaling | Missing | Needs the private XDR brightness path on supported Apple Silicon configurations. |
@@ -174,7 +174,7 @@ Needs a CoreAudio processing graph and per-device routing/UI.
 ### Next (highest user value per unit of work)
 
 1. **Resolution slider + custom mode/timing editor + true native-resolution overrides**.
-2. **Overlay dimming + true black** (nits OSD is done).
+2. ~~Overlay dimming + true black~~ (done; nits OSD done).
 3. **HTTP interface + App Intents** over the existing runtime operations.
 4. **Color mode selection, automatic SDR/HDR profile switching, forced HDR**.
 5. **Input customization + configuration/layout protection**.

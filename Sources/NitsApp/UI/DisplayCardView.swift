@@ -50,6 +50,7 @@ final class DisplayCardView: CardView {
     private let gainValue = Theme.label("", size: 10, weight: .medium, color: .secondaryLabelColor)
     private let hdrToggle = NSButton(checkboxWithTitle: "HDR dimming", target: nil, action: nil)
     private let extraToggle = NSButton(checkboxWithTitle: "Extra brightness", target: nil, action: nil)
+    private let overlayToggle = NSButton(checkboxWithTitle: "Overlay dimming (true black)", target: nil, action: nil)
     private let forceVolumeButton = NSButton()
     private let disconnectButton = NSButton()
     private let resetImageButton = NSButton()
@@ -317,7 +318,14 @@ final class DisplayCardView: CardView {
         extraToggle.target = self
         extraToggle.action = #selector(toggleExtra)
 
-        let toggles = Theme.horizontal([hdrToggle, extraToggle, Theme.flexibleSpace()], spacing: 12)
+        overlayToggle.font = .systemFont(ofSize: 10)
+        overlayToggle.target = self
+        overlayToggle.action = #selector(toggleOverlay)
+
+        let toggles = Theme.vertical([
+            Theme.horizontal([hdrToggle, extraToggle, Theme.flexibleSpace()], spacing: 12),
+            overlayToggle,
+        ], spacing: 4)
 
         forceVolumeButton.title = "Force volume controls"
         forceVolumeButton.bezelStyle = .rounded
@@ -468,6 +476,7 @@ final class DisplayCardView: CardView {
 
         hdrToggle.state = row.state.hdrSoftware ? .on : .off
         extraToggle.state = row.state.extraBrightness ? .on : .off
+        overlayToggle.state = row.state.overlayDimming ? .on : .off
         forceVolumeButton.isHidden = display.isBuiltin || row.volumeSupported
         disconnectButton.isHidden = display.isBuiltin
         inputPopup.isHidden = display.isBuiltin
@@ -619,6 +628,10 @@ final class DisplayCardView: CardView {
 
     @objc private func resetImage() {
         model.resetGamma(rowID: rowID)
+    }
+
+    @objc private func toggleOverlay() {
+        model.toggleOverlayDimming(rowID: rowID)
     }
 
     @objc private func toggleHDR() {

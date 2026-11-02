@@ -116,6 +116,8 @@ enum NitsCLI {
             try await groups(args: args, options: options, runtime: runtime)
         case "gamma", "image":
             try await gamma(args: args, options: options, runtime: runtime)
+        case "overlay":
+            try await overlay(args: args, options: options, runtime: runtime)
         case "hdr":
             try await hdr(args: args, options: options, runtime: runtime)
         case "extra":
@@ -196,10 +198,12 @@ enum NitsCLI {
                 if let delta {
                     let current = (await runtime.state(for: display, refresh: true)).brightness ?? 50
                     let target = min(150, max(0, current + delta))
+                    if delegateToApp(brightness: target, display: display, runtime: runtime) { continue }
                     let ok = await runtime.setBrightness(target, for: display, wait: true)
                     print("\(display.name): \(String(format: "%.1f%%", target))\(ok == false ? " (write failed)" : "")")
                 } else {
                     let value = try parseDouble(term, name: "brightness")
+                    if delegateToApp(brightness: value, display: display, runtime: runtime) { continue }
                     let ok = await runtime.setBrightness(value, for: display, wait: true)
                     print("\(display.name): \(String(format: "%.1f%%", value))\(ok == false ? " (write failed)" : "")")
                 }
@@ -214,6 +218,17 @@ enum NitsCLI {
                 print("\(display.name): \(state.brightness.map { String(format: "%.1f%%", $0) } ?? "unknown") backend=\(state.backend.rawValue)")
             }
         }
+    }
+
+    /// Overlay dimming is drawn by the running app, so brightness for such a display is
+    /// applied there. Falls back to the local write when the app is not running.
+    private static func delegateToApp(brightness target: Double, display: DisplaySnapshot, runtime: NitsRuntime) -> Bool {
+        guard runtime.config.snapshot().displaySettings[display.uuid]?.overlayDimming == true,
+              let response = ControlClient.send("brightness \(display.uuid) \(target)", timeout: 2),
+              response == "ok"
+        else { return false }
+        print("\(display.name): \(String(format: "%.1f%%", target)) (via app, overlay dimming)")
+        return true
     }
 
     private static func volume(args: [String], options: Options, runtime: NitsRuntime) async throws {
@@ -885,6 +900,13 @@ enum NitsCLI {
         print("\(display.name): \(describe(adjustment))")
     }
 
+    private static func overlay(args: [String], options: Options, runtime: NitsRuntime) async throws {
+        let display = try resolveDisplay(options: options, runtime: runtime)
+        let on = (args.first ?? "on") != "off"
+        runtime.setOverlayDimming(on, for: display)
+        print("\(display.name): overlay dimming \(on ? "on (0% is true black)" : "off") — applied by the running app")
+    }
+
     private static func hdr(args: [String], options: Options, runtime: NitsRuntime) async throws {
         let display = try resolveDisplay(options: options, runtime: runtime)
         let on = (args.first ?? "on") != "off"
@@ -1275,6 +1297,7 @@ enum NitsCLI {
           gamma set contrast=10 gamma=5 temp=20 invert=1
           gamma reset
           hdr on|off                        route brightness through gamma (HDR monitors)
+          overlay on|off                    dim with a black overlay window (0% = true black)
           extra on|off                      lift output above 100% on external panels
           sync on|off                       synchronize brightness across displays
 

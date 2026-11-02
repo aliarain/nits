@@ -136,6 +136,7 @@ final class AppModel: ObservableObject {
             presets = runtime.presets.presets()
             settings = runtime.config.snapshot().general
             runtime.syncHotkeys()
+            runtime.syncOverlayModes()
         }
         refreshAll(seedHardware: false)
     }
@@ -262,6 +263,14 @@ final class AppModel: ObservableObject {
         let on = !rows[index].state.hdrSoftware
         rows[index].state.hdrSoftware = on
         runtime.setHDRSoftwareDimming(on, for: rows[index].display)
+    }
+
+    func toggleOverlayDimming(rowID: String) {
+        guard let index = rows.firstIndex(where: { $0.id == rowID }) else { return }
+        let on = !rows[index].state.overlayDimming
+        rows[index].state.overlayDimming = on
+        runtime.setOverlayDimming(on, for: rows[index].display)
+        showStatus("Overlay dimming \(on ? "on — 0% is true black" : "off")")
     }
 
     func toggleExtraBrightness(rowID: String) {

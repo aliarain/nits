@@ -12,9 +12,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var globalClickMonitor: Any?
     private var controlServer: ControlSocketServer?
     private var pendingURLs: [URL] = []
+    private let overlayDimmer = OverlayDimmer()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         runtime = NitsRuntime()
+        let overlays = overlayDimmer
+        runtime.gamma.setOverlaySink { displayID, opacity in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { overlays.set(opacity: opacity, for: displayID) }
+            }
+        }
         model = AppModel(runtime: runtime)
         runtime.startMonitoring()
         model.start()
@@ -72,6 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         controlServer?.stop()
         model.stopMediaKeys()
         runtime.shutdown()
+        overlayDimmer.removeAll()
         if let globalClickMonitor {
             NSEvent.removeMonitor(globalClickMonitor)
         }

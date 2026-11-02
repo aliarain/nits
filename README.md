@@ -90,7 +90,7 @@ No Xcode required — Apple Command Line Tools are enough.
 
 ```sh
 make build          # debug build of all targets
-make test           # self-test runner (104+ checks)
+make test           # self-test runner (111+ checks)
 make check          # tests + release build
 make app            # assemble dist/Nits.app and ad-hoc sign it
 make run            # build and open the app
@@ -138,6 +138,7 @@ nitsctl edid --display 2 --export monitor.edid
 nitsctl edid override monitor.edid --display 2
 nitsctl virtual create 2560x1440 "Studio" --refresh 60
 nitsctl mode scale up
+nitsctl overlay on -d builtin   # 0% brightness becomes true black
 nitsctl group create Desk builtin 2 --sync brightness,image
 nitsctl action set connect preset "Work" --display 2
 nitsctl system nightshift on
