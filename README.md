@@ -62,6 +62,11 @@ less battle-tested.
 - **EDID read/export**, plus **EDID override writing** (preserving an installed HiDPI
   ladder) with validation before a privileged write.
 
+### Windows
+
+- **Menu bar panel** for quick adjustments, and a **sidebar window** (panel → sidebar button, or
+  right-click the menu bar icon → Open Nits Window) with every display and Settings.
+
 ### Presets, keys and integration
 
 - Presets capture resolution, brightness, volume, contrast, input, image adjustment,

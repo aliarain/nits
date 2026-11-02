@@ -59,9 +59,18 @@ final class DisplayCardView: CardView {
     private var current: DisplayRowState
     private var eventActionsController: EventActionsWindowController?
 
-    init(model: AppModel, row: DisplayRowState, onPickMode: @escaping (String) -> Void) {
+    /// In the main window the details are always shown and the collapse chevron is hidden.
+    private let forceExpanded: Bool
+
+    init(
+        model: AppModel,
+        row: DisplayRowState,
+        forceExpanded: Bool = false,
+        onPickMode: @escaping (String) -> Void
+    ) {
         self.model = model
         self.rowID = row.id
+        self.forceExpanded = forceExpanded
         self.onPickMode = onPickMode
         self.current = row
         super.init(frame: .zero)
@@ -412,7 +421,10 @@ final class DisplayCardView: CardView {
 
     // MARK: - Update
 
-    func update(_ row: DisplayRowState) {
+    func update(_ incoming: DisplayRowState) {
+        var row = incoming
+        if forceExpanded { row.isExpanded = true }
+        chevronButton.isHidden = forceExpanded
         current = row
         let display = row.display
 

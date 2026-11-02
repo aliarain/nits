@@ -77,7 +77,7 @@ doctor report; keep awake; launch at login; Dark Mode; sleep/wake mode restore.
 | Display configuration protection | Missing | Needs a guard that restores mode/refresh/HDR/arrangement when something changes them. |
 | Adaptive layout protection / advanced layout management | Missing | Needs layout snapshots, change detection and re-apply policies. |
 | Per-display actions on connect/disconnect/sleep/wake | Done | Preset, URL or shell command per display and event; configured from the card menu or CLI. |
-| Sidebar layout | Missing | Panel is popover-only. Needs a docked/sidebar window mode. |
+| Sidebar layout | Done | "Open Nits Window" (menu, panel button, ⌘O in the right-click menu): source-list sidebar of displays plus Settings, with the selected display's full controls in the detail pane. |
 | Optional menu bar right-click actions | Done | Right-click quick menu with presets/system toggles exists. |
 
 ### PIP, streaming and video filters

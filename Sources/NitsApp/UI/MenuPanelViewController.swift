@@ -6,6 +6,7 @@ import NitsCore
 final class MenuPanelViewController: NSViewController {
     private let model: AppModel
     private let openSettings: () -> Void
+    private let openMainWindow: () -> Void
     private let quit: () -> Void
 
     private let scroll = NSScrollView()
@@ -33,9 +34,15 @@ final class MenuPanelViewController: NSViewController {
     private var savePresetController: SavePresetWindowController?
     private var arrangementController: ArrangementWindowController?
 
-    init(model: AppModel, openSettings: @escaping () -> Void, quit: @escaping () -> Void) {
+    init(
+        model: AppModel,
+        openSettings: @escaping () -> Void,
+        openMainWindow: @escaping () -> Void,
+        quit: @escaping () -> Void
+    ) {
         self.model = model
         self.openSettings = openSettings
+        self.openMainWindow = openMainWindow
         self.quit = quit
         super.init(nibName: nil, bundle: nil)
     }
@@ -244,10 +251,11 @@ final class MenuPanelViewController: NSViewController {
         eyeButton.translatesAutoresizingMaskIntoConstraints = false
         eyeButton.widthAnchor.constraint(equalToConstant: 24).isActive = true
 
+        let window = Theme.iconButton("sidebar.left", target: self, action: #selector(mainWindowPressed), tooltip: "Open Nits window")
         let gear = Theme.iconButton("gearshape", target: self, action: #selector(settingsPressed), tooltip: "Settings")
         let power = Theme.iconButton("power", target: self, action: #selector(quitPressed), tooltip: "Quit Nits")
 
-        let row = Theme.horizontal([moonButton, eyeButton, Theme.flexibleSpace(), gear, power], spacing: 10)
+        let row = Theme.horizontal([moonButton, eyeButton, Theme.flexibleSpace(), window, gear, power], spacing: 10)
         container.addSubview(row)
         Theme.pin(row, to: container, insets: NSEdgeInsets(top: 4, left: 14, bottom: 4, right: 14))
         return container
@@ -400,6 +408,10 @@ final class MenuPanelViewController: NSViewController {
     }
 
     // MARK: - Actions
+
+    @objc private func mainWindowPressed() {
+        openMainWindow()
+    }
 
     @objc private func refreshPressed() {
         model.refreshAll(seedHardware: true)

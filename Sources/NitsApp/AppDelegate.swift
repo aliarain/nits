@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
     private var settingsController: SettingsWindowController?
+    private var mainController: MainWindowController?
     private var observers: [NSObjectProtocol] = []
     private var globalClickMonitor: Any?
     private var controlServer: ControlSocketServer?
@@ -54,6 +55,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 view.cacheDisplay(in: view.bounds, to: rep)
                 if let data = rep.representation(using: .png, properties: [:]) {
                     try? data.write(to: URL(fileURLWithPath: path))
+                }
+            }
+        }
+        if ProcessInfo.processInfo.environment["NITS_SHOW_MAIN"] == "1" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.openMainWindow()
+            }
+            if let path = ProcessInfo.processInfo.environment["NITS_MAIN_SNAPSHOT_PATH"] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                    guard let view = self?.mainController?.snapshotView(),
+                          let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+                    else { return }
+                    view.cacheDisplay(in: view.bounds, to: rep)
+                    if let data = rep.representation(using: .png, properties: [:]) {
+                        try? data.write(to: URL(fileURLWithPath: path))
+                    }
                 }
             }
         }
@@ -130,6 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = MenuPanelViewController(
             model: model,
             openSettings: { [weak self] in self?.openSettings() },
+            openMainWindow: { [weak self] in self?.openMainWindow() },
             quit: { NSApp.terminate(nil) }
         )
     }
@@ -183,6 +201,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(dark)
 
         menu.addItem(.separator())
+        let main = NSMenuItem(
+            title: "Open Nits Window",
+            action: #selector(openMainWindow),
+            keyEquivalent: "o"
+        )
+        main.target = self
+        menu.addItem(main)
+
         let settings = NSMenuItem(
             title: "Settings…",
             action: #selector(openSettings),
@@ -215,6 +241,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quitApp() {
         NSApp.terminate(nil)
+    }
+
+    @objc private func openMainWindow() {
+        popover.performClose(nil)
+        if mainController == nil {
+            mainController = MainWindowController(model: model)
+        }
+        mainController?.show()
     }
 
     @objc private func openSettings() {
