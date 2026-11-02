@@ -1,6 +1,6 @@
 # Nits
 
-**Free, open-source display control for macOS — a stable, BetterDisplay-class alternative.**
+**A free, open-source alternative to [BetterDisplay](https://github.com/waydabber/BetterDisplay) for macOS.**
 
 Nits is a menu bar app and CLI that gives you the display controls macOS hides: real DDC
 brightness, contrast, volume and input switching, sharp HiDPI scaling on any monitor,
@@ -9,6 +9,16 @@ scriptable interface. No license key, no trial, no Pro tier, no telemetry.
 
 > Nits is an independent project. It is not affiliated with BetterDisplay, Crisp,
 > MonitorControl or Lunar.
+
+## Screenshots
+
+| Sidebar window | Menu bar panel |
+| --- | --- |
+| ![Sidebar window with the selected display's controls](docs/screenshots/main.png) | ![Menu bar panel](docs/screenshots/panel.png) |
+
+| Settings | Arrangement canvas |
+| --- | --- |
+| ![Settings](docs/screenshots/settings.png) | ![Drag-to-arrange display layout](docs/screenshots/arrangement.png) |
 
 ## Status
 
